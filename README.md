@@ -1,6 +1,6 @@
 # agent-relay
 
-多 Agent / 多会话在同一 Git 仓库接力完成任务的协作协议，以 **WorkBuddy 用户级 Skill** 形式交付。协议手册 Human-readable 版本见 `docs/agent-relay-playbook.html`（V1.3）。
+多 Agent / 多会话在**任意一个 Git 仓库**（GitHub / GitLab / Gitea / 自建 Git 皆可，不绑定特定仓库）接力完成任务的协作协议，以 **WorkBuddy 用户级 Skill** 形式交付。唯一要求是参与各方对同一个 `origin` 有 fetch / push 权限。协议手册 Human-readable 版本见 `docs/agent-relay-playbook.html`（V1.3）。
 
 ## 触发场景
 

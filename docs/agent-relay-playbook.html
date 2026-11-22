@@ -200,6 +200,7 @@ html{scroll-behavior:smooth}
 
   <div class="lead">
     <p style="margin-top:0"><strong>核心原则</strong>：多个 Agent 各自开着独立的工作区、各自克隆了一份仓库，从来不在同一块磁盘上。所以接力的支点不是某个共享目录，而是<strong>同一个 Git 远端</strong>：谁开工，谁先把任务分支推上去；谁收工，谁把交接单和代码一起推回来。</p>
+    <p><strong>「同一个 Git 远端」= 任意一个 Git 仓库</strong>，不绑定特定仓库：GitHub / GitLab / Gitea / 自建 Git 均可，公有私有不限，仓库名与本协议无关。唯一硬要求是参与接力的各方对同一个 <code>origin</code> 都有 fetch / push 权限。本手册所在的 <code>multi-agents-relay</code> 只是协议文本与 Skill 的存放处，不是你必须使用的目标仓库。</p>
     <p style="margin-bottom:0"><strong>交接棒 = 一张任务卡 + 一次绿色提交。</strong>谁都能改，但只有推上去的改动才算数。</p>
   </div>
 
