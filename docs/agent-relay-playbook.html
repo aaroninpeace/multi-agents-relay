@@ -1,0 +1,979 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Agent Relay · 多 Agent 接力手册（PLAYBOOK / V1.3）</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 40px 16px; background: #f7f8fa; color: #1f2933; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; line-height: 1.78; }
+  .wrap { max-width: 1000px; margin: 0 auto; background: #fff; padding: 46px 52px; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+
+  /* 页头 */
+  .doc-head { border-bottom: 3px solid #1e3a5f; padding-bottom: 20px; margin-bottom: 8px; }
+  .kicker { font-size: .8rem; letter-spacing: .16em; text-transform: uppercase; color: #64748b; font-weight: 700; }
+  h1 { font-size: 1.9rem; margin: 8px 0 6px; line-height: 1.3; color: #12243d; letter-spacing: -.01em; }
+  .subtitle { font-size: 1.05rem; color: #475569; margin: 0 0 14px; }
+  .meta { color: #6b7280; font-size: .88rem; margin: 0; }
+  .meta b { color: #b45309; }
+  .version-tag { display: inline-block; background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; padding: 2px 10px; border-radius: 999px; font-size: .8rem; margin-right: 8px; font-weight: 600; }
+
+  /* 标题层级 */
+  h2 { font-size: 1.3rem; margin: 44px 0 12px; padding: 8px 0 8px 14px; border-bottom: 2px solid #e5e7eb; border-left: 5px solid #1e3a5f; color: #12243d; line-height: 1.4; }
+  h2 .ch-no { display: inline-block; font-size: .82rem; color: #fff; background: #1e3a5f; border-radius: 5px; padding: 1px 8px; margin-right: 10px; vertical-align: 2px; font-variant-numeric: tabular-nums; }
+  h3 { font-size: 1.05rem; margin: 26px 0 8px; color: #1e3a5f; }
+  h4 { font-size: .96rem; margin: 18px 0 6px; color: #334155; }
+  p { margin: 10px 0; }
+  ul, ol { padding-left: 24px; margin: 10px 0; }
+  li { margin: 6px 0; }
+  strong, b { color: #12243d; }
+
+  /* 代码与引用 */
+  code { background: #f1f3f5; padding: 1px 6px; border-radius: 4px; font-size: .88em; overflow-wrap: anywhere; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  pre { background: #1e293b; color: #e2e8f0; padding: 15px 18px; border-radius: 8px; overflow: auto; font-size: .82rem; line-height: 1.65; margin: 14px 0; white-space: pre; }
+  pre code { background: none; padding: 0; color: inherit; word-break: normal; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: inherit; }
+  pre .c { color: #7d8a9e; font-style: italic; }
+  pre .g { color: #86efac; }
+
+  /* 表格 */
+  .table-scroll { overflow-x: auto; margin: 14px 0; }
+  .table-scroll table { min-width: 720px; }
+  .table-scroll table.matrix { min-width: 880px; }
+  table { width: 100%; border-collapse: collapse; font-size: .86rem; }
+  th, td { border: 1px solid #d7dbe0; padding: 8px 11px; text-align: left; vertical-align: top; }
+  th { background: #f1f5f9; font-weight: 600; white-space: nowrap; }
+  tbody tr:nth-child(even) { background: #fafbfc; }
+  td.c, th.c { text-align: center; }
+  .ok-t { color: #047857; font-weight: 600; }
+  .weak-t { color: #b45309; }
+  .no-t { color: #b91c1c; font-weight: 600; }
+
+  /* 提示块 */
+  .note, .warn, .danger, .ok, .lead { margin: 14px 0; padding: 12px 18px; border-radius: 8px; font-size: .91rem; }
+  .note { background: #eff6ff; border-left: 4px solid #3b82f6; }
+  .warn { background: #fff7ed; border-left: 4px solid #f59e0b; }
+  .danger { background: #fef2f2; border-left: 4px solid #dc2626; }
+  .ok { background: #f0fdf4; border-left: 4px solid #16a34a; }
+  .lead { background: #f8fafc; border: 1px solid #e2e8f0; }
+  .quote { margin: 16px 0; padding: 14px 20px; background: #f8fafc; border-left: 4px solid #94a3b8; color: #334155; font-size: .95rem; }
+
+  /* 卡片 / 徽标 */
+  .card { border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 18px; margin: 14px 0; background: #fbfcfd; }
+  .card b.t { display: block; color: #1e3a5f; margin-bottom: 6px; }
+  .grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin: 14px 0; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 14px 0; }
+  .tag { display: inline-block; background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; padding: 2px 10px; border-radius: 999px; font-size: .8rem; margin: 0 6px 12px 0; }
+  .tag.gray { background: #f1f5f9; color: #475569; border-color: #cbd5e1; }
+  .tag.blue { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+  .tag.red { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+  .tag.amber { background: #fffbeb; color: #b45309; border-color: #fde68a; }
+  .pill { display: inline-block; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; padding: 2px 9px; border-radius: 999px; font-size: .78rem; margin-left: 8px; }
+  .muted { color: #64748b; font-size: .88rem; }
+
+  /* 步骤 */
+  .step { border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px 20px; margin: 14px 0; background: #fff; }
+  .step-h { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+  .step-no { font-variant-numeric: tabular-nums; font-weight: 800; color: #1e3a5f; background: #eef2f7; border-radius: 6px; padding: 2px 9px; font-size: .85rem; }
+  .step-t { font-weight: 700; color: #12243d; font-size: 1rem; }
+  .step-role { font-size: .8rem; color: #64748b; }
+  .step pre { margin: 8px 0; }
+  .field { font-size: .84rem; color: #475569; margin: 6px 0 0; }
+  .field b { color: #1e3a5f; }
+
+  /* 评审章节 */
+  .score-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 16px 0; }
+  .score { background: #fbfcfd; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 20px; }
+  .score .lbl { font-size: .8rem; color: #64748b; }
+  .score .num { font-size: 2.1rem; font-weight: 800; color: #12243d; margin: 6px 0 2px; line-height: 1.1; }
+  .score .num small { font-size: .9rem; color: #94a3b8; font-weight: 500; }
+  .score.good .num { color: #047857; }
+  .score.mid .num { color: #b45309; }
+  .score .desc { font-size: .82rem; color: #64748b; }
+  .review-item { border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 18px; margin: 10px 0; background: #fff; }
+  .review-item .rih { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+  .rid { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .78rem; font-weight: 700; color: #047857; background: #ecfdf5; border-radius: 5px; padding: 2px 7px; }
+  .review-item.amber .rid { color: #b45309; background: #fffbeb; }
+  .review-item.blue .rid { color: #1d4ed8; background: #eff6ff; }
+  .rit { font-weight: 700; color: #12243d; }
+  .rrow { font-size: .88rem; margin: 4px 0; color: #475569; }
+  .rrow .rk { display: inline-block; min-width: 48px; color: #94a3b8; font-size: .8rem; font-weight: 700; }
+  .state { background: #1e293b; color: #a7f3d0; padding: 16px 18px; border-radius: 8px; overflow: auto; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .8rem; line-height: 1.7; white-space: pre; margin: 12px 0; }
+  .sign { margin-top: 40px; padding-top: 18px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-size: .8rem; color: #94a3b8; }
+  .sign b { color: #047857; }
+  a { color: #1d4ed8; }
+
+  @media (max-width: 860px) {
+    body { padding: 20px 10px; }
+    .wrap { padding: 26px 18px; }
+    h1 { font-size: 1.5rem; }
+    .grid2, .grid3, .score-grid { grid-template-columns: 1fr; }
+  }
+</style>
+<style id="doc-toc-style">
+/* 文档目录（组织过程资产规范）：左侧固定 + 滚动高亮 + 窄屏置顶 + 打印隐藏 */
+#doc-toc{position:fixed;left:16px;top:20px;width:232px;max-height:calc(100vh - 40px);overflow:auto;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px 12px;box-shadow:0 1px 4px rgba(0,0,0,.06);z-index:30;font-family:ui-sans-serif,system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;font-size:.86rem;line-height:1.35}
+#doc-toc .doc-toc-title{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:#94a3b8;margin:2px 8px 8px}
+#doc-toc a{display:block;padding:5px 8px;border-radius:6px;color:#334155;text-decoration:none}
+#doc-toc a.sub{padding-left:22px;font-size:.79rem;color:#64748b}
+#doc-toc a:hover{background:#f1f5f9}
+#doc-toc a.active{background:#eff6ff;color:#1d4ed8;font-weight:600}
+/* 左侧让出目录后内容区变窄：宽表格/长代码在卡片内横向滚动，避免整页出现横向滚动条 */
+.wrap{overflow-x:auto}
+body{padding-left:276px!important}
+h2[id],h3[id]{scroll-margin-top:20px}
+html{scroll-behavior:smooth}
+@media(max-width:1180px){body{padding-left:16px!important}#doc-toc{position:static;width:auto;max-height:none;margin:0 16px 16px}#doc-toc nav{display:flex;flex-wrap:wrap;gap:4px}}
+@media print{#doc-toc{display:none}body{padding-left:0!important}}
+</style>
+</head>
+<body>
+  <aside id="doc-toc" aria-label="文档目录">
+    <div class="doc-toc-title">文档目录</div>
+    <nav>
+      <a href="#sec-1">01核心原则：先接受 Agent 之间没有共享记忆</a>
+      <a class="sub" href="#sec-1-1">P1 · 远端才是共享内存</a>
+      <a class="sub" href="#sec-1-2">P2 · 接力单位是「一张卡 + 一个分支 + 一次绿色提交」</a>
+      <a class="sub" href="#sec-1-3">P3 · 一条任务一条分支，主干只接受合并</a>
+      <a class="sub" href="#sec-1-4">P4 · 交接标准：对方 fetch 一次就能继续</a>
+      <a class="sub" href="#sec-1-5">P5 · 换模型也是交接：落盘才算数（V1.3）</a>
+      <a href="#sec-2">02工具分工：先分清谁能写代码，谁只该出主意</a>
+      <a class="sub" href="#sec-2-1">七个席位</a>
+      <a class="sub" href="#sec-2-2">缺席席位</a>
+      <a class="sub" href="#sec-2-3">能力矩阵 · 开工前逐个试一遍</a>
+      <a href="#sec-3">03同步总线：几个克隆之间，唯一的通道是远端</a>
+      <a class="sub" href="#sec-3-1">三条基本认识</a>
+      <a class="sub" href="#sec-3-2">拓扑结构</a>
+      <a class="sub" href="#sec-3-3">一棒到底要跑哪几条命令</a>
+      <a class="sub" href="#sec-3-4">总线纪律</a>
+      <a class="sub" href="#sec-3-5">中途换人：换棒，不换分支</a>
+      <a class="sub" href="#sec-3-6">WIP 交接单五格</a>
+      <a class="sub" href="#sec-3-7">换人时的五条禁令</a>
+      <a href="#sec-4">04车间协议：几份克隆各写各的，靠什么不打架</a>
+      <a class="sub" href="#sec-4-1">仓库结构</a>
+      <a class="sub" href="#sec-4-2">五条前提</a>
+      <a href="#sec-5">05接力循环：每一棒的产出，都是下一棒的输入</a>
+      <a class="sub" href="#sec-5-1">七步接力</a>
+      <a href="#sec-6">06交接模板：把口头交接变成可复制的格式</a>
+      <a class="sub" href="#sec-6-1">任务卡 · .agent/tasks/T-014.md</a>
+      <a class="sub" href="#sec-6-2">交接单 · .agent/handoffs/T-014.md</a>
+      <a class="sub" href="#sec-6-3">提交信息 · git commit -m</a>
+      <a class="sub" href="#sec-6-4">派单 Prompt · 粘给产品席</a>
+      <a class="sub" href="#sec-6-5">接手 Prompt · 粘给实现席</a>
+      <a class="sub" href="#sec-6-6">同步命令 · 开工 / 收工各一段</a>
+      <a href="#sec-7">07编队方案：关键在交接密度</a>
+      <a class="sub" href="#sec-7-1">双人接力</a>
+      <a class="sub" href="#sec-7-2">三角编队</a>
+      <a class="sub" href="#sec-7-3">七人全链</a>
+      <a href="#sec-8">08冲突与验收：让接力不变成互相拆台</a>
+      <a class="sub" href="#sec-8-1">G1 · 写权与分支控制</a>
+      <a class="sub" href="#sec-8-2">G2 · 验收门（DoD）</a>
+      <a class="sub" href="#sec-8-3">G3 · 失败与回滚</a>
+      <a class="sub" href="#sec-8-4">六条全过，才算这张卡结束</a>
+      <a class="sub" href="#sec-8-5">Fail Fast · 接不下去时怎么办</a>
+      <a class="sub" href="#sec-8-6">信号 → 处置对照</a>
+      <a href="#sec-9">09反模式：六种让接力断掉的写法</a>
+      <a class="sub" href="#sec-9-1">统一止损动作</a>
+      <a href="#sec-10">10落地清单：今天就能做完的八件事</a>
+      <a class="sub" href="#sec-10-1">最后一句话</a>
+      <a href="#sec-11">11把手册升级为可执行的 Skill（V1.2 评审增补 · V1.3 补充）</a>
+      <a class="sub" href="#sec-11-1">总体判断</a>
+      <a class="sub" href="#sec-11-2">A 组 · 定位与触发（4 条，决定 Skill 会不会被用对）</a>
+      <a class="sub" href="#sec-11-3">B 组 · 可执行性（5 条，决定接力可不可靠）</a>
+      <a class="sub" href="#sec-11-4">C 组 · 健壮性与边界（5 条，决定复杂场景扛不扛得住）</a>
+      <a class="sub" href="#sec-11-5">改造蓝图 · 可直接照此落地</a>
+      <a class="sub" href="#sec-11-6">补充 · 同会话换模型：软交接检查点（V1.3）</a>
+    </nav>
+  </aside>
+  
+<div class="wrap">
+
+  <header class="doc-head">
+    <div class="kicker">Agent Relay · 组织过程资产</div>
+    <h1>多 Agent 接力手册</h1>
+    <p class="subtitle">让多个独立工作区的 Agent，在同一个 Git 仓库里接力完成项目</p>
+    <p class="meta">
+      <span class="version-tag">PLAYBOOK / V1.3</span>
+      <b>版本</b> V1.3 ｜ <b>更新</b> 2026.11 ｜ <b>适用</b> 同一台电脑上多客户端 / 多会话协作，含同会话换模型
+    </p>
+  </header>
+
+  <div class="lead">
+    <p style="margin-top:0"><strong>核心原则</strong>：多个 Agent 各自开着独立的工作区、各自克隆了一份仓库，从来不在同一块磁盘上。所以接力的支点不是某个共享目录，而是<strong>同一个 Git 远端</strong>：谁开工，谁先把任务分支推上去；谁收工，谁把交接单和代码一起推回来。</p>
+    <p style="margin-bottom:0"><strong>交接棒 = 一张任务卡 + 一次绿色提交。</strong>谁都能改，但只有推上去的改动才算数。</p>
+  </div>
+
+  <div class="grid3">
+    <div class="card"><b class="t">独立工作区</b>各 Agent 各自克隆，磁盘互不共享</div>
+    <div class="card"><b class="t">共同远端</b>唯一的公共内存：commit + push</div>
+    <div class="card"><b class="t">接力循环</b>七步固定动作，每棒产出下一棒的输入</div>
+  </div>
+
+  <!-- ============ 01 核心原则 ============ -->
+  <h2 id="sec-1"><span class="ch-no">01</span>核心原则：先接受 Agent 之间没有共享记忆</h2>
+  <p>它们不会互相读心，也不会共享上下文。多个克隆各管各的本地目录，能跨过去传递的只有已经推送的提交，所以流程要围绕分支和交接单来设计。</p>
+
+  <h3 id="sec-1-1">P1 · 远端才是共享内存</h3>
+  <p>几个目录之间不共享任何东西，本地文件传不过去。能跨克隆稳定传递的只有已经提交并推到远端的内容；没 push 的改动，在下一棒眼里等于不存在。</p>
+
+  <h3 id="sec-1-2">P2 · 接力单位是「一张卡 + 一个分支 + 一次绿色提交」</h3>
+  <p>不是「聊完换人」，而是「做完一件能验收的事、推到远端再换人」。一张卡一个目标，卡上写死验收命令，交接才有边界。</p>
+
+  <h3 id="sec-1-3">P3 · 一条任务一条分支，主干只接受合并</h3>
+  <p>多个克隆同时开工时，写权靠分支隔离。远程分支就是认领凭证：分支已经在远端，说明有人在做；main 只能通过合并进入，不能直推。</p>
+
+  <h3 id="sec-1-4">P4 · 交接标准：对方 fetch 一次就能继续</h3>
+  <p>交接单必须跟着 commit 推到远端。留在本地草稿、聊天窗口或某个没收起的终端里的说明，下一棒永远看不到。</p>
+
+  <h3 id="sec-1-5">P5 · 换模型也是交接：落盘才算数 <span class="pill">V1.3 新增</span></h3>
+  <p>「单工作区多会话」解决的是<strong>换会话</strong>时的接力（硬交接）。但同一会话里前后换模型，没有「会话结束」这个天然断点：未提交的改动会被新模型就地继承，聊天记录还留在窗口里，容易被当成事实来源。模型换了，上下文窗口、工具能力、指令遵循强度也可能跟着变。</p>
+  <p>所以换模型按<strong>软交接</strong>处理：<strong>不换分支、不换任务卡，但必须打检查点</strong>——commit + push、刷新 <code>state.json</code>（记录 session / model / checkpoint_commit）、写一份 ≤400 字的检查点交接单，并把关键约束（allowed_paths、验收命令、DoD、当前 status）重述一遍。新模型的第一步只读仓库事实，不沿用上一模型的口头结论。完整规则见 <a href="#sec-11-6">§11-6</a>。</p>
+
+  <!-- ============ 02 工具分工 ============ -->
+  <h2 id="sec-2"><span class="ch-no">02</span>工具分工：先分清谁能写代码，谁只该出主意</h2>
+  <p>各席位都在自己的克隆里工作，分工说的是「谁适合干什么」，不是「谁能碰到文件」。真正的写权由一张卡一条分支决定。</p>
+
+  <h3 id="sec-2-1">七个席位</h3>
+  <div class="table-scroll">
+  <table>
+    <thead><tr><th>席位</th><th>工具形态</th><th>角色</th><th>擅长</th><th>边界</th></tr></thead>
+    <tbody>
+      <tr><td>豆包工作</td><td>对话式办公</td><td>产品席</td><td>需求澄清、拆任务、写验收标准、读长文档</td><td>偏对话，跑构建和批量改码不如 IDE / CLI，适合出卡和读交接单</td></tr>
+      <tr><td>千问工作</td><td>对话式 / 长上下文</td><td>评审席</td><td>方案与接口评审、找逻辑漏洞、事后复盘</td><td>评审结论可信，但别指望它守着终端跑测试；结论要落进仓库</td></tr>
+      <tr><td>WorkBuddy</td><td>办公自动化</td><td>调度席</td><td>多步流程编排、进度汇总、生成周报</td><td>强在流程，弱在代码细节；只让它动自己负责的文档和脚本</td></tr>
+      <tr><td>CodeBuddy</td><td>IDE Agent</td><td>实现席</td><td>整文件改写、重构、补单测</td><td>长任务容易发散，必须用任务卡限定改动目录</td></tr>
+      <tr><td>ZCode</td><td>终端 / CLI Agent</td><td>修红席</td><td>跑测试、批量替换、把构建从红改绿</td><td>不擅长从零设计交互，别让它做产品判断</td></tr>
+      <tr><td>Trae</td><td>IDE Agent</td><td>原型席</td><td>前端页面、交互原型、快速起版</td><td>风格和架构一致性要由接手方兜底</td></tr>
+      <tr><td>MiniCode</td><td>轻量 CLI Agent</td><td>快修席</td><td>小改动、脚本、格式化、提交前清理</td><td>跨文件改造容易漏改，改完必须自己跑一遍构建</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 id="sec-2-2">缺席席位</h3>
+  <div class="note">团队里总有一个「只出主意、不落文件」的成员。给它顾问席：产出任务卡和评审意见，<strong>不碰代码</strong>——这样它的判断力照样能用，但不会制造冲突。<br><span class="muted">READ ONLY → WRITE NEVER</span></div>
+
+  <h3 id="sec-2-3">能力矩阵 · 开工前逐个试一遍</h3>
+  <p><span class="tag">OK 可直接用</span><span class="tag amber">~ 看版本</span><span class="tag red">— 偏弱</span><span class="tag gray">待确认</span></p>
+  <div class="table-scroll">
+  <table class="matrix">
+    <thead><tr><th>客户端</th><th>读仓库</th><th>写文件</th><th>跑终端</th><th>Git 推送</th><th>MCP / 自定义命令</th><th>长上下文</th><th>默认席位</th></tr></thead>
+    <tbody>
+      <tr><td>豆包工作</td><td class="c ok-t">OK</td><td class="c weak-t">~</td><td class="c weak-t">~</td><td class="c weak-t">~</td><td class="c weak-t">~</td><td class="c ok-t">OK</td><td>产品席</td></tr>
+      <tr><td>千问工作</td><td class="c ok-t">OK</td><td class="c weak-t">~</td><td class="c weak-t">~</td><td class="c weak-t">~</td><td class="c weak-t">~</td><td class="c ok-t">OK</td><td>评审席</td></tr>
+      <tr><td>WorkBuddy</td><td class="c ok-t">OK</td><td class="c weak-t">~</td><td class="c weak-t">~</td><td class="c weak-t">~</td><td class="c ok-t">OK</td><td class="c weak-t">~</td><td>调度席</td></tr>
+      <tr><td>CodeBuddy</td><td class="c ok-t">OK</td><td class="c ok-t">OK</td><td class="c ok-t">OK</td><td class="c ok-t">OK</td><td class="c ok-t">OK</td><td class="c weak-t">~</td><td>实现席</td></tr>
+      <tr><td>ZCode</td><td class="c ok-t">OK</td><td class="c ok-t">OK</td><td class="c ok-t">OK</td><td class="c ok-t">OK</td><td class="c weak-t">~</td><td class="c ok-t">OK</td><td>修红席</td></tr>
+      <tr><td>Trae</td><td class="c ok-t">OK</td><td class="c ok-t">OK</td><td class="c ok-t">OK</td><td class="c weak-t">~</td><td class="c ok-t">OK</td><td class="c weak-t">~</td><td>原型席</td></tr>
+      <tr><td>MiniCode</td><td class="c ok-t">OK</td><td class="c ok-t">OK</td><td class="c ok-t">OK</td><td class="c weak-t">~</td><td class="c no-t">—</td><td class="c weak-t">~</td><td>快修席</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="muted">既然每人一份克隆，「能不能读、能不能写、能不能提交」基本都不是问题，真正的差别在「跑得动构建」和「长任务是否稳定」。这张表是按形态给的经验值，不是官方能力清单，请在你本机逐个开一次分支、跑一次 build 再定席位。</p>
+
+  <!-- ============ 03 同步总线 ============ -->
+  <h2 id="sec-3"><span class="ch-no">03</span>同步总线：几个克隆之间，唯一的通道是远端</h2>
+  <p>本方案的前提：各客户端各自工作在自己的目录、各有一份克隆，唯一共同点是同一个 Git 远端。只要都能 fetch / push，就能接力；连远端都够不着的客户端，只能当顾问席——出任务卡和评审意见，代码由别人推。</p>
+
+  <h3 id="sec-3-1">三条基本认识</h3>
+  <div class="grid3">
+    <div class="card"><b class="t">本地目录传不过去</b>各份克隆各在各的盘上，你改的文件别人看不见；磁盘不是共享内存。</div>
+    <div class="card"><b class="t">远端才是总线</b>只有 commit + push 之后的内容，才存在于所有工作区都能读到的公共空间里。</div>
+    <div class="card"><b class="t">分支就是锁</b>远程分支存在即视为被认领，不需要锁文件服务，也不会出现两个人静默覆盖。</div>
+  </div>
+
+  <h3 id="sec-3-2">拓扑结构</h3>
+  <pre><code>              origin（唯一远端：裸仓库 / GitHub / 内网 Git）
+        ┌──────────────────── main ────────────────────┐
+        │  只接受合并 · 禁止直推 · 必须验收通过          │
+        └───┬──────────────┬───────────────┬───────────┘
+            │ push / fetch │ push / fetch  │ push / fetch
+   ┌────────▼───────┐ ┌────▼──────────┐ ┌──▼─────────────┐
+   │ 豆包工作/克隆 A │ │ CodeBuddy/B   │ │ ZCode/克隆 G   │
+   │ .agent 副本    │ │ .agent 副本   │ │ .agent 副本    │
+   └────────┬───────┘ └────┬──────────┘ └──┬─────────────┘
+            └──────────────┴───────────────┘
+        agent/T-014 分支：谁推上去，谁就拥有这张卡</code></pre>
+
+  <h3 id="sec-3-3">一棒到底要跑哪几条命令</h3>
+  <div class="step">
+    <div class="step-h"><span class="step-no">01</span><span class="step-t">先对齐远端</span></div>
+    <pre><code>git fetch --all --prune
+git switch main &amp;&amp; git pull --ff-only</code></pre>
+    <p class="field">开工前先看远端已有哪几张卡、谁在写；本地不 fetch 就等于在看昨天的世界。</p>
+  </div>
+  <div class="step">
+    <div class="step-h"><span class="step-no">02</span><span class="step-t">建分支并推送，才算认领</span></div>
+    <pre><code>git switch -c agent/T-014
+git push -u origin agent/T-014</code></pre>
+    <p class="field">推得上去说明没人占；提示 already exists 就换一张卡，不要硬抢。</p>
+  </div>
+  <div class="step">
+    <div class="step-h"><span class="step-no">03</span><span class="step-t">在自己的克隆里做完并自检</span></div>
+    <pre><code>pnpm build &amp;&amp; pnpm test
+git status --short</code></pre>
+    <p class="field">改动只落在本卡允许的文件里；构建必须在你自己的工作区跑绿。</p>
+  </div>
+  <div class="step">
+    <div class="step-h"><span class="step-no">04</span><span class="step-t">交接单和代码一起推</span></div>
+    <pre><code>git add .agent/handoffs/T-014.md src/
+git commit -m "feat(x): … [T-014]"
+git push</code></pre>
+    <p class="field">交接单留在本地等于没写；分支名和最后一次提交号必须写进交接单。</p>
+  </div>
+  <div class="step">
+    <div class="step-h"><span class="step-no">05</span><span class="step-t">rebase 后合并回主干</span></div>
+    <pre><code>git fetch &amp;&amp; git switch agent/T-014
+git rebase origin/main
+git switch main &amp;&amp; git merge --no-ff agent/T-014</code></pre>
+    <p class="field">冲突在自己的分支上解决，不在 main 上解决；合并前再跑一次构建。</p>
+  </div>
+
+  <h3 id="sec-3-4">总线纪律</h3>
+  <ul>
+    <li>本地目录不共享，远端才共享：任何要交接的东西，先 commit，再 push。</li>
+    <li>认领用远程分支实现，不需要任何锁服务；分支推成功才算占到这张卡。</li>
+    <li>顾问席（豆包工作、千问工作）可以只读，但它们的任务卡和评审结论同样要推上去，否则下一棒看不到。</li>
+    <li>禁止 force push 覆盖别人的分支；push 被拒就先 fetch + rebase，再重试。</li>
+    <li>一张卡一个分支；要并行就得拆卡、拆文件，不能两个克隆改同一段代码。</li>
+  </ul>
+
+  <h3 id="sec-3-5">中途换人：换棒，不换分支</h3>
+  <p>拆卡是用来缩小交付粒度的，不是用来转移责任的。判断只有一个标准：<strong>这一棒能不能交出一个可验收的增量</strong>。能，就拆；不能，就续棒——同一条分支往后追加提交，谁接手谁 push。</p>
+  <div class="table-scroll">
+  <table>
+    <thead><tr><th>情形</th><th>处置</th><th>分支</th><th>交接物</th></tr></thead>
+    <tbody>
+      <tr><td>只是换执行者，边界不变</td><td>续棒</td><td>同一条 <code>agent/T-014</code> 继续追加提交，不新建分支、不复制卡</td><td>WIP 交接单，写清最后一次提交号</td></tr>
+      <tr><td>剩余部分能独立验收</td><td>拆卡</td><td>原卡收口后合并进 main，再从最新 main 拉 <code>agent/T-015</code></td><td>原卡关闭说明 + 新卡（含新的验收命令）</td></tr>
+      <tr><td>方向错了或卡本身不成立</td><td>废卡</td><td>分支打 tag 留档后丢弃，不合并；从 main 重新开卡</td><td>一句话写清为什么废，别让下一棒重走一遍</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="muted">续棒的场景：剩下的活还不够独立验收——改到一半的组件、没跑完的测试、只有你知道的临时状态。</p>
+
+  <h4>换棒三步</h4>
+  <pre><code># 第一棒：半成品必须先推上去（不合并）
+git add -A
+git commit -m "wip(T-014): 做完 X，卡在 Y"
+git push
+
+# 第二棒：接同一条分支，先看最后一棒停在哪
+git fetch --prune
+git switch agent/T-014 &amp;&amp; git pull --ff-only
+git log --oneline -3
+
+# 收口后照常回主干
+git switch main &amp;&amp; git pull --ff-only
+git merge --no-ff agent/T-014</code></pre>
+
+  <h3 id="sec-3-6">WIP 交接单五格</h3>
+  <ol>
+    <li><strong>现状</strong>：一句话说清当前能不能构建、能不能跑。</li>
+    <li><strong>已完成</strong>：列到提交号，别写「差不多了」。</li>
+    <li><strong>卡在哪</strong>：贴失败命令的原始输出，不要转述。</li>
+    <li><strong>下一动作</strong>：只写一个可执行动作，不写方向。</li>
+    <li><strong>不要碰</strong>：明确禁止改的文件与原因。</li>
+  </ol>
+
+  <h3 id="sec-3-7">换人时的五条禁令</h3>
+  <ul>
+    <li>同一张卡不要在两个克隆各开一条分支，双写必然冲突。</li>
+    <li>不要把未提交的改动贴进聊天窗口，换台机器就丢了。</li>
+    <li>不要用 <code>git stash</code> 交接，它只存在你那台机器上。</li>
+    <li>不要为了换人把红的分支合进 main，先修绿或先回退。</li>
+    <li>不要把拆卡当默认动作，拆一次就多丢一次上下文。</li>
+  </ul>
+
+  <!-- ============ 04 车间协议 ============ -->
+  <h2 id="sec-4"><span class="ch-no">04</span>车间协议：几份克隆各写各的，靠什么不打架</h2>
+  <p>不需要任何插件、服务器或锁服务。一个共同远端加几条分支约定，就把「谁在做、做到哪、下一步是什么」变成所有克隆都能 fetch 到的事实。</p>
+
+  <h3 id="sec-4-1">仓库结构</h3>
+  <pre><code>origin/                        # 各克隆共同指向的唯一远端
+├─ main                        # 集成分支：只接受合并，开保护规则
+├─ agent/T-014                 # 一卡一分支：分支存在 = 已被认领
+└─ agent/T-014-review          # 可选：评审留痕分支（团队要求时）
+
+任一份克隆内的结构（各份一致，靠 git 同步）
+repo/
+├─ AGENTS.md                   # 技术栈、三条验收命令、目录约定、禁止事项
+├─ .agent/
+│  ├─ tasks/T-014.md           # 任务卡：目标 + 验收命令 + 允许改动范围
+│  ├─ handoffs/T-014.md        # 交接单：现状 + 已做 + 未做 + 下一动作
+│  ├─ log.md                   # 只追加流水账：谁、何时、推到哪个分支
+│  └─ state.json               # 当前阶段、认领分支、阻塞项
+└─ src/                        # 业务代码：只在本卡分支上改</code></pre>
+
+  <h3 id="sec-4-2">五条前提</h3>
+  <ol>
+    <li><code>AGENTS.md</code> 跟代码一起进仓库：它随 fetch 同步，不是谁本机的私人笔记。</li>
+    <li>任务卡写在 main 上（或专门的派单分支）并推送，其他人 fetch 之后才知道有这张卡。</li>
+    <li>任务卡只写一个可验收目标。写不出验收命令的需求，回炉重写。</li>
+    <li>改动只在 <code>agent/T-xxx</code> 分支上进行；main 开保护：禁止直推、必须构建通过、至少一次评审。</li>
+    <li>交接单必须写明分支名与最后一次提交号，下一棒用它定位，不靠猜。</li>
+  </ol>
+
+  <!-- ============ 05 接力循环 ============ -->
+  <h2 id="sec-5"><span class="ch-no">05</span>接力循环：每一棒的产出，都是下一棒的输入</h2>
+  <p>把「换人」拆成固定动作，交接就不再靠记忆和自觉。任何一步没产出物，就不该进入下一步。</p>
+
+  <h3 id="sec-5-1">七步接力</h3>
+  <div class="step">
+    <div class="step-h"><span class="step-no">01</span><span class="step-t">派单</span><span class="step-role">产品席（豆包工作）+ 人</span></div>
+    <p>卡片里不写「优化一下体验」，写「点击 X 出现 Y，build 通过」。范围、验收命令、不许碰的目录三项缺一不可；写完推上去，别放在自己克隆里。</p>
+    <p class="field"><b>OUT</b> <code>.agent/tasks/T-014.md</code>（已推送）　<b>RULE</b> 一张卡一个可验收目标</p>
+  </div>
+  <div class="step">
+    <div class="step-h"><span class="step-no">02</span><span class="step-t">同步远端</span><span class="step-role">任一实现席</span></div>
+    <p><code>git fetch --all --prune</code>，看一眼 origin 上已经有哪些 <code>agent/T-xxx</code>。已经有分支的卡别接，接了就是两个人的冲突。</p>
+    <p class="field"><b>OUT</b> fetch 后的远端分支列表　<b>RULE</b> 先看有没有人认领</p>
+  </div>
+  <div class="step">
+    <div class="step-h"><span class="step-no">03</span><span class="step-t">建分支认领</span><span class="step-role">实现席</span></div>
+    <p>从最新 main 切出分支，第一次 push 成功即完成认领。推不上去说明卡已被占，回去换一张，不要改名硬挤。</p>
+    <p class="field"><b>OUT</b> <code>origin/agent/T-014</code>　<b>RULE</b> 推成功才算占到</p>
+  </div>
+  <div class="step">
+    <div class="step-h"><span class="step-no">04</span><span class="step-t">只读勘察</span><span class="step-role">实现席</span></div>
+    <p>按顺序读 <code>AGENTS.md</code>、上一张交接单、相关源码和最近几次提交。输出现状 / 要改的文件 / 风险三点，确认后再动手。</p>
+    <p class="field"><b>OUT</b> 接手的第一个 3 行结论　<b>RULE</b> 先读，后写</p>
+  </div>
+  <div class="step">
+    <div class="step-h"><span class="step-no">05</span><span class="step-t">单点实现 + 自检门</span><span class="step-role">实现席</span></div>
+    <p>改动超出任务卡的「允许改动」就停手拆卡。构建、测试、lint 必须在自己克隆里跑绿；修不动就如实写「仍红、卡在哪一行」。</p>
+    <p class="field"><b>OUT</b> 本分支上的绿色提交　<b>RULE</b> 全绿才允许交接</p>
+  </div>
+  <div class="step">
+    <div class="step-h"><span class="step-no">06</span><span class="step-t">提交并推送交接单</span><span class="step-role">实现席</span></div>
+    <p>交接单和代码放在同一次 push 里，写清分支名、最后一次提交号、没做完的事和下一棒第一件事。踩过的坑写进去，那是这一棒最贵的产出。</p>
+    <p class="field"><b>OUT</b> <code>.agent/handoffs/T-014.md</code> 已推送　<b>RULE</b> 别留在本地</p>
+  </div>
+  <div class="step">
+    <div class="step-h"><span class="step-no">07</span><span class="step-t">评审、rebase 与合并</span><span class="step-role">评审席（千问工作）+ 人</span></div>
+    <p>评审基于远端分支看 diff；通过后 rebase 到最新 main 再 <code>--no-ff</code> 合并。有问题退回第 5 步，并在卡上写明退回原因。</p>
+    <p class="field"><b>OUT</b> review 结论 + 合并进 main　<b>RULE</b> 评审只读 diff，不直接改码</p>
+  </div>
+  <div class="note">七个席位不必都上。最少两个人就能跑这套循环；人越多，越依赖第 6 步那张纸的质量。</div>
+
+  <!-- ============ 06 交接模板 ============ -->
+  <h2 id="sec-6"><span class="ch-no">06</span>交接模板：把口头交接变成可复制的格式</h2>
+  <p>模板的价值不在于写得多漂亮，而在于每一棒都填同样五个格子。空格一旦固定，缺什么一眼就能看出来。</p>
+  <p><span class="tag gray">任务卡</span><span class="tag gray">交接单</span><span class="tag gray">提交信息</span><span class="tag gray">派单 Prompt</span><span class="tag gray">接手 Prompt</span><span class="tag gray">同步命令</span></p>
+
+  <h3 id="sec-6-1">任务卡 · .agent/tasks/T-014.md</h3>
+  <p class="muted">派单用。目标、验收、范围三件事写死，后面的席位才有边界。</p>
+  <pre><code># T-014 价格页新增区间筛选
+
+## 分支
+agent/T-014（认领后由实现席从最新 main 切出）
+
+## 目标
+价格页新增 ¥0-100 / ¥100-500 / ¥500+ 三档筛选，选中后列表实时收敛。
+
+## 验收标准（缺一不可）
+- [ ] 切换档位后列表只显示对应区间商品
+- [ ] 清空筛选恢复全量
+- [ ] pnpm build 通过，页面无 console 报错
+
+## 允许改动
+- src/routes/pricing.tsx
+- src/components/PriceFilter.tsx（可新建）
+
+## 不要碰
+src/lib/api.ts、数据库 schema、任何 .env*
+
+## 已知约束
+筛选在前端做，不改接口；宽度 &lt;= 640px 时按钮换行。</code></pre>
+
+  <h3 id="sec-6-2">交接单 · .agent/handoffs/T-014.md</h3>
+  <p class="muted">换人时唯一可信的上下文。必须随同一分支推到远端，否则下一棒看不到。</p>
+  <pre><code># T-014 交接单
+
+## 分支与提交
+分支：agent/T-014
+最后提交：a1b2c3d
+已推送：是
+
+## 状态
+已完成 / 部分完成（写明差哪一步）
+
+## 做了什么
+- 新增 PriceFilter 组件：三档区间 + 清空按钮
+- 改动 src/routes/pricing.tsx，接入过滤逻辑
+
+## 没做什么（重要）
+- 未做移动端换行：设计稿缺失，没敢定
+- 未补单测
+
+## 怎么验证
+git fetch &amp;&amp; git switch agent/T-014
+pnpm build &amp;&amp; pnpm dev
+打开 /pricing，依次点 100-500、清空
+
+## 留给下一棒
+1. 补 &lt;= 640px 的换行样式
+2. 给过滤函数加 3 个单测：空档位、边界值 100、超出范围
+
+## 踩过的坑
+区间一开始写成闭区间，100 同时命中第一档；已改为 (a, b]，别再改回去。</code></pre>
+
+  <h3 id="sec-6-3">提交信息 · git commit -m</h3>
+  <pre><code>feat(pricing): 新增价格区间筛选 [T-014]
+
+- 三档区间 + 清空，前端过滤未改接口
+- 移动端换行与单测待补
+
+Refs: .agent/tasks/T-014.md
+Branch: agent/T-014
+Next: 补 &lt;= 640px 换行与 3 个单测</code></pre>
+
+  <h3 id="sec-6-4">派单 Prompt · 粘给产品席</h3>
+  <p class="muted">让对话型 Agent 只产出卡片，不越权改代码，并把卡片推上去。</p>
+  <pre><code>你是本项目的【产品席】。你只读仓库、只写 .agent/ 下的文档，不改 src/。
+
+步骤：
+1. 先 git fetch --all，读 AGENTS.md 与远端已有任务卡
+2. 把我的需求拆成不超过 3 张任务卡，写入 .agent/tasks/
+3. 每张卡必须含：一个可验收目标、验收命令、允许改动目录、分支名、明确不做的事
+4. commit 并 push 到 main（或派单分支），让所有克隆都能 fetch 到
+5. 完成后只回卡片路径和一句话摘要，不要解释你的思路
+
+需求：&lt;在这里贴需求&gt;</code></pre>
+
+  <h3 id="sec-6-5">接手 Prompt · 粘给实现席</h3>
+  <p class="muted">把「先同步、再勘察、后动手」变成流程，避免开局就乱改。</p>
+  <pre><code>你是【实现席】，接手任务卡 .agent/tasks/T-014.md。
+
+开工前必须：
+1. git fetch --all --prune，确认 origin 上没有同名 agent/T-014 分支
+2. 读 AGENTS.md、最近的 .agent/handoffs/*.md
+3. 切分支：git switch -c agent/T-014 &amp;&amp; git push -u origin agent/T-014
+4. 只读勘察，先给我 3 行结论：现状 / 要改的文件 / 风险
+
+我确认后再动手，改动不得超出任务卡的「允许改动」范围。
+完成后把代码和 handoffs/T-014.md 一起 commit + push，并跑完验收命令再回报。</code></pre>
+
+  <h3 id="sec-6-6">同步命令 · 开工 / 收工各一段</h3>
+  <pre><code># 开工
+git fetch --all --prune
+git switch main &amp;&amp; git pull --ff-only
+git switch -c agent/T-014
+git push -u origin agent/T-014
+
+# 收工
+git add -A
+git commit -m "feat(x): 摘要 [T-014]"
+git push
+git fetch
+git rebase origin/main
+git switch main &amp;&amp; git merge --no-ff agent/T-014</code></pre>
+
+  <div class="ok">复制只是起点。真正的门槛是：下一棒拿到这张纸，能不能一句都不问就开工。如果做不到，缺的那一条就是下一次要补进模板的字段。</div>
+
+  <!-- ============ 07 编队方案 ============ -->
+  <h2 id="sec-7"><span class="ch-no">07</span>编队方案：关键在交接密度</h2>
+  <p>编队不是越多人越好。席位越多，交接次数越多，每多一次交接就多一次信息损耗。先按任务复杂度选最小可行编队，跑顺了再加人。</p>
+
+  <h3 id="sec-7-1">双人接力</h3>
+  <p class="muted">最小可用：两个克隆就能跑起来</p>
+  <div class="card">
+    <p><span class="tag blue">CodeBuddy · 实现席</span>认领分支、按卡实现、跑完自检门并推送</p>
+    <p><span class="tag blue">ZCode · 复核席</span>fetch 分支跑测试，只读 diff，把红修绿</p>
+    <p class="field"><b>接力顺序</b> 任务卡 → CodeBuddy 推分支 → ZCode fetch 复核 / 修红 → 人合并 main</p>
+    <p class="field"><b>适用</b> 个人项目、单功能迭代、想把流程先跑通</p>
+  </div>
+  <div class="warn">两个克隆各写各的分支，靠远端串行；别去互相覆盖工作区目录，也不要互相同步半成品。</div>
+
+  <h3 id="sec-7-2">三角编队</h3>
+  <p class="muted">上线项目的稳态配置</p>
+  <div class="card">
+    <p><span class="tag blue">豆包工作 · 产品席</span>澄清需求，产出任务卡并推到 main</p>
+    <p><span class="tag blue">CodeBuddy · 实现席</span>在 <code>agent/T-xxx</code> 分支上实现并写交接单</p>
+    <p><span class="tag blue">千问工作 · 评审席</span>读远端 diff 找漏洞，给通过或退回结论</p>
+    <p class="field"><b>接力顺序</b> 出卡并推送 → 实现并推分支 → 评审远端 diff → rebase 后合并</p>
+    <p class="field"><b>适用</b> 已上线站点、需要需求把关和代码复核的功能开发</p>
+  </div>
+  <div class="warn">评审席只读分支、不改分支；它一旦动手推代码，就没有第二双眼睛了。</div>
+
+  <h3 id="sec-7-3">七人全链</h3>
+  <p class="muted">席位齐全，但最考验交接质量</p>
+  <div class="card">
+    <p><span class="tag gray">豆包工作 · 需求</span>把一句话需求变成 1-3 张卡并推送</p>
+    <p><span class="tag gray">千问工作 · 评审</span>方案预审 + 合并前基于远端 diff 复核</p>
+    <p><span class="tag gray">WorkBuddy · 调度</span>维护 <code>.agent/log.md</code>、排优先级、汇总进度</p>
+    <p><span class="tag gray">Trae · 原型</span>在自己的分支上做出能点的版本，定交互</p>
+    <p><span class="tag gray">CodeBuddy · 实现</span>按卡落地并补单测</p>
+    <p><span class="tag gray">ZCode · 修红</span>把构建、测试、lint 拉回全绿</p>
+    <p><span class="tag gray">MiniCode · 快修</span>格式化、小修、提交前清理</p>
+    <p class="field"><b>接力顺序</b> 需求 → 原型分支 → 实现分支 → 修红 → 清理 → 评审 → rebase 合并</p>
+    <p class="field"><b>适用</b> 重构、多页面改造、多人协作的中大型任务</p>
+  </div>
+  <div class="warn">七个克隆就是七份上下文，交接单和分支名是唯一索引；缺一条，后面全乱。</div>
+  <div class="note">换人可以，席位职责别乱：写代码的、只读评审的、只管流程的，一旦混在一起，验收就形同虚设。</div>
+
+  <!-- ============ 08 冲突与验收 ============ -->
+  <h2 id="sec-8"><span class="ch-no">08</span>冲突与验收：让接力不变成互相拆台</h2>
+  <p>多 Agent 协作的失败，几乎都不是「模型不够聪明」，而是边界没定。写权、验收标准、回滚路径三件事必须提前写死，否则每一棒都在替上一棒擦屁股。</p>
+
+  <h3 id="sec-8-1">G1 · 写权与分支控制</h3>
+  <p class="muted">几个克隆互不相识，写权靠分支隔离，不靠自觉。</p>
+  <ul>
+    <li>一卡一分支 <code>agent/T-xxx</code>：分支推到远端即视为认领，别人看到就换卡</li>
+    <li>禁止直推 main，开保护规则：至少一次评审、必须构建通过</li>
+    <li>push 被拒先 fetch + rebase，不许 force push 覆盖他人提交</li>
+    <li>同一个文件同一时间只归一个分支，跨席位改动先拆卡</li>
+  </ul>
+
+  <h3 id="sec-8-2">G2 · 验收门（DoD）</h3>
+  <p class="muted">解决「算不算做完」的问题，标准写死，不许各说各话。</p>
+  <ul>
+    <li>build / test / lint 三条命令全绿，且是在本分支本次改动后跑的</li>
+    <li>改动范围与任务卡一致，超范围的部分拆成新卡</li>
+    <li>分支、交接单、提交信息都已推到远端，别人 fetch 得到</li>
+    <li>无密钥、无调试代码、无注释掉的旧实现残留</li>
+  </ul>
+
+  <h3 id="sec-8-3">G3 · 失败与回滚</h3>
+  <p class="muted">解决「接不下去」的问题，先止损，再定位。</p>
+  <ul>
+    <li>接手方复现失败：checkout 交接单里写的提交号，别从 main 猜现状</li>
+    <li>分支落后太多：先 rebase origin/main，再跑验收命令</li>
+    <li>两个分支改了同一文件：合并在先，人工裁决冲突，不许强推覆盖</li>
+    <li>任务卡本身有歧义：退回产品席改写，实现席不许自行发挥</li>
+  </ul>
+
+  <h3 id="sec-8-4">六条全过，才算这张卡结束</h3>
+  <div class="table-scroll">
+  <table>
+    <thead><tr><th class="c">#</th><th>DoD 检查项</th><th class="c">通过</th></tr></thead>
+    <tbody>
+      <tr><td class="c">1</td><td>构建通过（本分支本次改动后跑的）</td><td class="c">☐</td></tr>
+      <tr><td class="c">2</td><td>测试通过</td><td class="c">☐</td></tr>
+      <tr><td class="c">3</td><td>lint 无新增问题</td><td class="c">☐</td></tr>
+      <tr><td class="c">4</td><td>改动范围 = 任务卡范围</td><td class="c">☐</td></tr>
+      <tr><td class="c">5</td><td>分支与交接单已推送</td><td class="c">☐</td></tr>
+      <tr><td class="c">6</td><td>无密钥 / 调试残留</td><td class="c">☐</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="danger">三条命令必须是「本次改动之后」跑的。改码前的绿色构建不算数。</div>
+
+  <h3 id="sec-8-5">Fail Fast · 接不下去时怎么办</h3>
+  <ol>
+    <li>先停写，别在红的基线上继续叠改动</li>
+    <li>回退到上一个绿色提交，保留现场</li>
+    <li>把失败复现步骤写进交接单</li>
+    <li>拆小任务卡，重新派单给另一个席位</li>
+  </ol>
+  <div class="quote">回滚不是失败，带着错误往前走才是。</div>
+
+  <h3 id="sec-8-6">信号 → 处置对照</h3>
+  <div class="table-scroll">
+  <table>
+    <thead><tr><th>风险</th><th>可观测信号</th><th>处置动作</th></tr></thead>
+    <tbody>
+      <tr><td>看的是过期代码</td><td>本地很久没 fetch，分支落后 main 一大截</td><td>开工和交接前都 <code>git fetch --all --prune</code>，以远端分支为准</td></tr>
+      <tr><td>两个克隆抢同一张卡</td><td>push 提示远程分支已存在</td><td>让出这张卡，或拆卡另开分支；不要改名硬挤</td></tr>
+      <tr><td>直接改 main，回滚很难</td><td>main 出现没有评审的提交</td><td>立即 revert，补齐 main 保护规则</td></tr>
+      <tr><td>交接单留在本地</td><td>下一棒 fetch 不到 handoff 文件</td><td>把交接单和代码放进同一次 push，再宣布交接</td></tr>
+      <tr><td>构建一直红，没人敢接</td><td>连续两棒都没让分支变绿</td><td>降级为最小修复卡，只修构建，别的都不做</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <!-- ============ 09 反模式 ============ -->
+  <h2 id="sec-9"><span class="ch-no">09</span>反模式：六种让接力断掉的写法</h2>
+  <p>下面每一条都真实发生过，而且都不会报错——它们只是让效率悄悄归零。出现任意一条，先停写。</p>
+  <div class="table-scroll">
+  <table>
+    <thead><tr><th class="c">#</th><th>反模式</th><th>为什么致命</th></tr></thead>
+    <tbody>
+      <tr><td class="c">01</td><td>把本地目录当共享盘</td><td>几个克隆互不相通，改完不推等于没改；谁也看不到你硬盘上的文件</td></tr>
+      <tr><td class="c">02</td><td>直接 push 到 main</td><td>几个克隆抢一个入口，未审代码和冲突会一起进主干，回滚成本翻倍</td></tr>
+      <tr><td class="c">03</td><td>交接单只在本地草稿里</td><td>下一棒 fetch 不到，只能从提交历史里考古，沟通成本全落到人身上</td></tr>
+      <tr><td class="c">04</td><td>把聊天记录复制粘贴当交接</td><td>噪声大、关键结论埋在中途，下一棒还得重读一遍，等于没交接</td></tr>
+      <tr><td class="c">05</td><td>一张卡塞一整个功能</td><td>「把支付做完」无法验收，实现席必然发散，最后谁也不敢合并</td></tr>
+      <tr><td class="c">06</td><td>跳过验收门直接换人</td><td>这一棒的错误会被下一棒当成事实继续放大，越往后越难回滚</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 id="sec-9-1">统一止损动作</h3>
+  <div class="danger">不管撞上哪一条，处置顺序都一样：<strong>停写 → 回滚到上一次绿色提交 → 补齐任务卡 → 重新派单</strong>。</div>
+  <p>不要在红着的代码上继续叠改动，也不要靠「我记得当时是这么想的」来补救。</p>
+
+  <!-- ============ 10 落地清单 ============ -->
+  <h2 id="sec-10"><span class="ch-no">10</span>落地清单：今天就能做完的八件事</h2>
+  <p>不需要装插件、不需要写服务。先建远端、开保护、拿一个真实小需求跑一遍，流程就能立起来。</p>
+  <div class="table-scroll">
+  <table>
+    <thead><tr><th class="c">#</th><th>动作</th><th>为什么</th><th class="c">完成</th></tr></thead>
+    <tbody>
+      <tr><td class="c">01</td><td>建一个共同远端（裸仓库 / GitHub 私库），各客户端全部 clone</td><td>远端是各份克隆之间唯一的总线</td><td class="c">☐</td></tr>
+      <tr><td class="c">02</td><td>给 main 开保护：禁止直推、必须构建通过、至少一次评审</td><td>没有保护分支，前面的约定都是口头禅</td><td class="c">☐</td></tr>
+      <tr><td class="c">03</td><td>写 AGENTS.md 并提交：技术栈、三条验收命令、目录约定、禁止事项</td><td>它随 fetch 同步，所有席位开工第一条就是读它</td><td class="c">☐</td></tr>
+      <tr><td class="c">04</td><td>约定分支命名 <code>agent/T-xxx</code>，一张卡一个分支</td><td>远程分支就是认领凭证</td><td class="c">☐</td></tr>
+      <tr><td class="c">05</td><td>给每个客户端固定一段「席位 Prompt」，写清 fetch / push 责任</td><td>放在各自自定义指令里，避免每次重贴</td><td class="c">☐</td></tr>
+      <tr><td class="c">06</td><td>确认每个实现席都能在自己克隆里跑 build</td><td>跑不动构建的只能当顾问席</td><td class="c">☐</td></tr>
+      <tr><td class="c">07</td><td>用一张真实小卡跑通全流程：推分支 → 交接 → rebase → 合并</td><td>越小越好，重点是跑通，不是做完</td><td class="c">☐</td></tr>
+      <tr><td class="c">08</td><td>一周后复盘：数返工次数与「接手方提问次数」</td><td>提问次数下降，说明交接单真的在起作用</td><td class="c">☐</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="muted">全部勾完之后，最有价值的动作是复盘：统计一周内「接手方提问次数」和返工次数。这两个数字降下来，说明协议真的生效了。</p>
+
+  <h3 id="sec-10-1">最后一句话</h3>
+  <div class="quote">不要追求让 Agent 互相聊天，先让每一棒的产出都能被下一棒原样接住。<br>接力跑得快不快取决于最后一棒，而最后一棒能跑多快，取决于第一棒留下的那张纸。</div>
+  <div class="grid3">
+    <div class="card"><b class="t">先让每一棒可被接住</b>与其指望这些客户端互通上下文，不如把结论推到同一个远端。提交历史是它们唯一的公共内存。</div>
+    <div class="card"><b class="t">一次只推进一个可验收目标</b>卡片越小，交接越轻。任务卡写不出验收命令，说明需求还没想清楚。</div>
+    <div class="card"><b class="t">构建没绿就别换人</b>红着交出去，错误会被下一棒当成事实继续放大，回滚成本翻倍。</div>
+  </div>
+  <p class="muted">能力矩阵里的强弱是「按工具形态」给的经验判断，不是任何厂商的官方规格；请以你本机实际版本为准，逐个开一次目录、跑一次构建再定席位。</p>
+
+  <!-- ============ 11 评审增补 ============ -->
+  <h2 id="sec-11"><span class="ch-no">11</span>把手册升级为可执行的 Skill（V1.2 评审增补 · V1.3 补充）</h2>
+  <p>前 10 章把「人怎么接力」讲透了。但要让桌面 Agent 加载即用，还差一层「机器可执行契约」。本章是 V1.2 的评审增补：先给总体判断，再给 14 条具体意见（分三组），最后给一份可直接落地的改造蓝图。V1.3 追加 §11-6：把「同一会话内换模型」纳入交接协议，补齐 C1 的覆盖边界。</p>
+
+  <h3 id="sec-11-1">总体判断</h3>
+  <div class="score-grid">
+    <div class="score good"><div class="lbl">作为「协议手册」</div><div class="num">9<small> / 10</small></div><div class="desc">原则、分工、流程、模板、护栏、反模式、落地清单齐全，逻辑自洽</div></div>
+    <div class="score mid"><div class="lbl">作为「Skill 源材料」</div><div class="num">5<small> / 10</small></div><div class="desc">缺触发条件、缺可执行脚本、缺机器可读 schema，不适合直接加载</div></div>
+    <div class="score"><div class="lbl">补完 P0 之后</div><div class="num">9<small> / 10</small></div><div class="desc">协议层几乎不用改，补一层「执行层」即可成为高质量 Skill</div></div>
+  </div>
+  <div class="note"><strong>一句话结论：</strong>这份文档的「协议设计」已经成熟，问题不在讲得对不对，而在<strong>讲给人听，没讲给 Agent 执行</strong>。改造重心是补触发、补脚本、补 schema，而不是重写这 10 章。</div>
+
+  <h3 id="sec-11-2">A 组 · 定位与触发（4 条，决定 Skill 会不会被用对）</h3>
+  <div class="review-item">
+    <div class="rih"><span class="rid">A1</span><span class="rit">手册 ≠ Skill：缺可执行的入口指令</span></div>
+    <p class="rrow"><span class="rk">现状</span>全文是「协议说明」，讲清了为什么这样做、怎么分工、流程是什么。</p>
+    <p class="rrow"><span class="rk">问题</span>Skill 是给 Agent 加载的执行指令，需要「用户说什么 → 执行什么 → 产出什么」。当前没有一句告诉 Agent 何时触发、触发后第一步做什么。</p>
+    <p class="rrow"><span class="rk">建议</span>新增 <code>SKILL.md</code>，frontmatter 写清触发场景；正文首段给「加载后立即执行的 3 步」：读 state.json → 判定当前状态 → 输出下一动作。原 10 章降级为 <code>references/</code>。</p>
+  </div>
+  <div class="review-item">
+    <div class="rih"><span class="rid">A2</span><span class="rit">缺触发条件与反向排除</span></div>
+    <p class="rrow"><span class="rk">现状</span>没有定义「用户说什么话时启用本流程」。</p>
+    <p class="rrow"><span class="rk">问题</span>Agent 不知道何时加载，可能在用户只想问一个小问题时套上七步接力，反而添乱。</p>
+    <p class="rrow"><span class="rk">建议</span>定义触发词：<code>多 agent 协作 / 接力 / 交接任务 / 派单 / 接手 / 跨会话继续项目</code>；并写明反向排除：单 Agent 一次性小任务不触发。</p>
+  </div>
+  <div class="review-item">
+    <div class="rih"><span class="rid">A3</span><span class="rit">产品名硬编码，换一批工具就要改全文</span></div>
+    <p class="rrow"><span class="rk">现状</span>豆包工作 / 千问工作 / WorkBuddy / CodeBuddy / ZCode / Trae / MiniCode 贯穿能力矩阵、席位、编队三处。</p>
+    <p class="rrow"><span class="rk">问题</span>Skill 会被不同桌面 Agent 加载，这些名字对加载者无意义；工具一换全文失效。</p>
+    <p class="rrow"><span class="rk">建议</span>抽象为「角色协议」——产品席 / 评审席 / 调度席 / 实现席 / 修红席 / 原型席 / 快修席（文档已有角色名），产品名降为括号内「当前示例」，角色定义单独放 <code>references/roles.md</code>。</p>
+  </div>
+  <div class="review-item">
+    <div class="rih"><span class="rid">A4</span><span class="rit">单文件过大，无法高效加载与检索</span></div>
+    <p class="rrow"><span class="rk">现状</span>正文嵌在压缩脚本里，整份文档体积很大。</p>
+    <p class="rrow"><span class="rk">问题</span>Skill 加载的是文本，打包后的脚本无法被 Agent 有效读取，grep 定位也困难。</p>
+    <p class="rrow"><span class="rk">建议</span>按渐进式披露拆成 <code>SKILL.md（&lt;5k 字）+ references/ + scripts/ + assets/</code>。本 HTML 保留为「人类阅读版」，两者并存不冲突。</p>
+  </div>
+
+  <h3 id="sec-11-3">B 组 · 可执行性（5 条，决定接力可不可靠）</h3>
+  <div class="review-item amber">
+    <div class="rih"><span class="rid">B1</span><span class="rit">命令散落在代码块里，应固化为脚本</span></div>
+    <p class="rrow"><span class="rk">现状</span>5 条命令、换棒三步、同步命令都散在代码块，靠 Agent 手抄。</p>
+    <p class="rrow"><span class="rk">问题</span>git rebase / merge 顺序抄错代价高；不同工作区路径不同，照抄易失败。</p>
+    <p class="rrow"><span class="rk">建议</span>固化为 <code>relay-init/claim/sync/verify/handoff/merge.sh</code> 六个脚本，统一接收 <code>TASK_ID</code> 参数，Agent 直接调用。</p>
+  </div>
+  <div class="review-item amber">
+    <div class="rih"><span class="rid">B2</span><span class="rit">state.json 只提名，无 schema / 状态机</span></div>
+    <p class="rrow"><span class="rk">现状</span>仓库结构里写「当前阶段、认领分支、阻塞项」，但全文没有字段定义、状态枚举、转移规则。</p>
+    <p class="rrow"><span class="rk">问题</span>不同 Agent 写出不同结构，下一棒无法可靠解析，状态机会退化成自由文本。</p>
+    <p class="rrow"><span class="rk">建议</span>给固定 schema（见下方蓝图）与状态枚举：<code>todo → claimed → in_progress → handoff → in_review → merged</code>，旁路 <code>blocked / abandoned</code>。</p>
+  </div>
+  <div class="review-item amber">
+    <div class="rih"><span class="rid">B3</span><span class="rit">DoD 六条未脚本化，容易「自报已完成」</span></div>
+    <p class="rrow"><span class="rk">现状</span>六条 DoD 是给人看的 checkbox。</p>
+    <p class="rrow"><span class="rk">问题</span>Agent 可能声称完成但实际没跑 build、没 push 交接单、改动越界。</p>
+    <p class="rrow"><span class="rk">建议</span><code>relay-verify.sh</code> 自动校验：diff 范围是否在 allowed_paths、分支是否已 push、交接单 last_commit 是否等于 HEAD、验收命令退出码是否为 0。全过才允许写 <code>status=handoff</code>。</p>
+  </div>
+  <div class="review-item amber">
+    <div class="rih"><span class="rid">B4</span><span class="rit">任务卡 / 交接单缺 frontmatter，解析脆弱</span></div>
+    <p class="rrow"><span class="rk">现状</span>模板是纯 Markdown 标题段落（「## 分支」「最后提交：a1b2c3d」）。</p>
+    <p class="rrow"><span class="rk">问题</span>Agent 靠正则抠「分支：xxx」，格式稍变就解析失败。</p>
+    <p class="rrow"><span class="rk">建议</span>加 YAML frontmatter：任务卡 <code>id/title/branch/allowed_paths/acceptance</code>；交接单 <code>task_id/branch/last_commit/status/done/remaining/next_action/pitfalls</code>。</p>
+  </div>
+  <div class="review-item amber">
+    <div class="rih"><span class="rid">B5</span><span class="rit">验收指标无采集字段，复盘取不到数</span></div>
+    <p class="rrow"><span class="rk">现状</span>落地清单第 8 条要统计「接手方提问次数 / 返工次数」，但没定义埋点。</p>
+    <p class="rrow"><span class="rk">问题</span>到了复盘节点无从取数，「提问次数下降」无法验证。</p>
+    <p class="rrow"><span class="rk">建议</span>log.md 固定字段（时间戳 / 角色 / task_id / 事件类型），事件枚举 <code>claim / handoff / verify_fail / merge / rework / question</code>，用脚本聚合。</p>
+  </div>
+
+  <h3 id="sec-11-4">C 组 · 健壮性与边界（5 条，决定复杂场景扛不扛得住）</h3>
+  <div class="review-item blue">
+    <div class="rih"><span class="rid">C1</span><span class="rit">未覆盖「单工作区多会话」接力 <span class="pill">V1.3 已细化</span></span></div>
+    <p class="rrow"><span class="rk">现状</span>全篇假设多台机器、多份克隆。</p>
+    <p class="rrow"><span class="rk">问题</span>Skill 常见用法是同一 Agent 在同一工作区跨会话接力，没有物理目录隔离；更进一步的「同一会话内换模型」连会话断点都没有（见 §11-6）。</p>
+    <p class="rrow"><span class="rk">建议</span>补一节「单工作区模拟接力」：用分支 + state.json + 交接单替代目录隔离，切角色时 commit/push 再切分支；强调「commit+push 才算交接」同样适用。<strong>覆盖边界：</strong>该方案<strong>不能直接覆盖</strong>「同一 Agent、同一会话、前后不同模型」——那是软交接，规则见 <a href="#sec-11-6">§11-6</a> 与 <a href="#sec-1-5">P5</a>。</p>
+  </div>
+  <div class="review-item blue">
+    <div class="rih"><span class="rid">C2</span><span class="rit">缺人工介入阈值，Agent 可能互相退单死循环</span></div>
+    <p class="rrow"><span class="rk">现状</span>护栏 G3 说「退回产品席改写」，但产品席也可能是 Agent。</p>
+    <p class="rrow"><span class="rk">问题</span>两个 Agent 可能退来退去，无人叫停。</p>
+    <p class="rrow"><span class="rk">建议</span>定义 human-in-the-loop 触发：<code>verify_fail ≥ 3 次 / 验收命令写不出 / 涉及生产凭据或数据迁移 / 同文件冲突无法裁决</code>。触发即写 <code>status=blocked</code> 并明确 @人。</p>
+  </div>
+  <div class="review-item blue">
+    <div class="rih"><span class="rid">C3</span><span class="rit">凭据与权限是盲区</span></div>
+    <p class="rrow"><span class="rk">现状</span>「不要碰 .env*」写得很好，但没说 Agent 用什么身份 push。</p>
+    <p class="rrow"><span class="rk">问题</span>共享 deploy key / token 有泄露与越权风险。</p>
+    <p class="rrow"><span class="rk">建议</span>每席位独立凭据、最小权限（仅目标仓库）、token 不落盘只走环境变量、push 审计写 log.md。</p>
+  </div>
+  <div class="review-item blue">
+    <div class="rih"><span class="rid">C4</span><span class="rit">缺上下文契约：交接单会吃掉下一棒的窗口</span></div>
+    <p class="rrow"><span class="rk">现状</span>交接单「五格」但没有长度约束。</p>
+    <p class="rrow"><span class="rk">问题</span>长交接单反而降低接力质量——读不完或挤占推理空间。</p>
+    <p class="rrow"><span class="rk">建议</span>单张交接单 ≤ 400 字、每条踩坑 ≤ 2 行，详细材料放 <code>assets/</code> 用链接引用。</p>
+  </div>
+  <div class="review-item blue">
+    <div class="rih"><span class="rid">C5</span><span class="rit">协议版本与回滚机制未定义</span></div>
+    <p class="rrow"><span class="rk">现状</span>文档自身标 V1.1，但没说协议版本如何演进。</p>
+    <p class="rrow"><span class="rk">问题</span>Skill 升级后旧交接单格式可能不兼容，回滚无依据。</p>
+    <p class="rrow"><span class="rk">建议</span>交接单 frontmatter 带 <code>schema_version</code>；模板变更做兼容读取；Skill 用语义化版本，破坏性变更升主版本。</p>
+  </div>
+
+  <h3 id="sec-11-5">改造蓝图 · 可直接照此落地</h3>
+  <h4>① Skill 包目录结构</h4>
+  <pre><code>agent-relay/
+├── SKILL.md                  <span class="c"># 触发条件 + 加载后立即执行的 3 步 + 指针（&lt;5k 字）</span>
+├── references/
+│   ├── core-principles.md    <span class="c"># P1-P4 + 单工作区适配（C1）</span>
+│   ├── roles.md              <span class="c"># 7 角色，产品名降为示例（A3）</span>
+│   ├── workshop.md           <span class="c"># 仓库结构 + 七步循环 + 换棒</span>
+│   ├── guardrails.md         <span class="c"># 三道护栏 + DoD + 回滚</span>
+│   ├── templates.md          <span class="c"># 六份模板全文</span>
+│   └── anti-patterns.md      <span class="c"># 六种反模式</span>
+├── scripts/
+│   ├── relay-init.sh  relay-claim.sh  relay-sync.sh
+│   ├── relay-verify.sh relay-handoff.sh relay-merge.sh
+│   └── relay-checkpoint.sh        <span class="c"># V1.3 软交接：同会话换模型打检查点（§11-6）</span>
+└── assets/
+    ├── task-card.md          <span class="c"># 带 frontmatter 的任务卡</span>
+    ├── handoff.md            <span class="c"># 带 frontmatter 的交接单</span>
+    └── state.example.json</code></pre>
+
+  <h4>② SKILL.md frontmatter 示例</h4>
+  <pre><code>---
+name: agent-relay
+description: 多 Agent / 多会话在同一 Git 仓库接力完成任务的协作协议。
+  当用户要求「多 agent 协作」「接力 / 交接任务」「派单 / 接手」
+  「跨会话继续项目」或需要把大任务拆成可验收小卡并跨执行者传递时使用。
+  单 agent 一次性小任务不要触发。
+agent_created: true
+---</code></pre>
+
+  <h4>③ state.json schema <span class="pill">V1.3 增 session 字段</span></h4>
+  <pre><code>{
+  "schema_version": 1,
+  "task_id": "T-014",
+  "status": "in_progress",
+  "owner": "实现席",
+  "branch": "agent/T-014",
+  "base_commit": "a1b2c3d",
+  "last_green_commit": "e4f5g6h",
+  "blockers": [],
+  "updated_at": "2026-11-22T09:00:00+08:00",
+  "session": {
+    "id": "s-20261122-01",
+    "model": "model-B",              <span class="c"># 当前模型标识，换模型后由新模型改写</span>
+    "handoff_kind": "model_switch",  <span class="c"># session_end | model_switch</span>
+    "checkpoint_commit": "e4f5g6h",  <span class="c"># 换模型那一刀落在哪个提交上</span>
+    "model_history": [               <span class="c"># 同一会话内换过哪些模型，留审计轨迹</span>
+      { "model": "model-A", "until": "e4f5g6h", "at": "2026-11-22T09:00:00+08:00" }
+    ]
+  }
+}</code></pre>
+
+  <h4>④ 状态机（Agent 每次加载先读状态再决定动作）</h4>
+  <div class="state">todo ──claim──▶ claimed ──start──▶ in_progress ──verify 全绿──▶ handoff ──review──▶ in_review ──merge──▶ merged
+                                  │                │
+                                  │                └─ verify_fail ≥3 ─▶ blocked ──@人裁决──▶ 恢复 / abandoned
+                                  └─ 需求作废 ─────────────────────────▶ abandoned（打 tag 留档）
+
+  ⟳ model_switch（同会话换模型）不改变主状态，只写检查点：commit + push + state.session 更新
+    新模型加载时统一执行「读 state.json → 读检查点交接单 → 读 git log -1 → 复述约束」</div>
+
+  <h4>⑤ 优先级路线</h4>
+  <div class="grid3">
+    <div class="card"><b class="t">P0 · 不做就不叫 Skill</b>A1 可执行入口 · A2 触发条件 · A3 角色抽象<br>B1 命令脚本化 · B2 state schema<br>C5 版本与兼容</div>
+    <div class="card"><b class="t">P1 · 决定好不好用</b>B3 DoD 自动校验 · B4 模板 frontmatter<br>C1 单工作区 + §11-6 软交接 · C2 人工介入阈值<br>C4 上下文契约</div>
+    <div class="card"><b class="t">P2 · 锦上添花</b>A4 文档拆包（本 HTML 保留为阅读版）<br>B5 指标埋点 · C3 凭据最小权限</div>
+  </div>
+
+  <h3 id="sec-11-6">补充 · 同会话换模型：软交接检查点 <span class="pill">V1.3 新增</span></h3>
+  <div class="warn"><strong>覆盖判定：</strong>C1 的「单工作区多会话」<strong>不能直接覆盖</strong>「同一 Agent、同一会话、前后使用不同模型」。多会话接力靠「会话结束」这个天然断点触发 commit + push + 交接单；同一会话内换模型没有断点，未提交的改动会被新模型就地继承，而聊天记录还留在窗口里，会跟仓库抢「唯一事实来源」的位置。结论是：<strong>机制可复用，但必须补一条软交接规则</strong>，否则换模型后的第一步行为没有约定，接力质量靠运气。</div>
+
+  <h4>① 两种交接的边界</h4>
+  <div class="table-scroll">
+  <table>
+    <thead><tr><th>维度</th><th>硬交接（换会话 / 换席位）</th><th>软交接（同会话换模型）</th></tr></thead>
+    <tbody>
+      <tr><td>触发时机</td><td>会话结束、任务转手、有人退出</td><td>用户在同一会话中切换模型（含被平台自动降级 / 升级）</td></tr>
+      <tr><td>分支 / 任务卡</td><td>换棒换分支（或同分支交接），owner 换席位</td><td><strong>不换分支、不换任务卡</strong>，task_id 与 status 原样保留</td></tr>
+      <tr><td>必做动作</td><td>commit + push + 交接单 + state.json，下一棒 fetch 后从零读仓库</td><td>commit + push + <strong>检查点交接单</strong> + state.json 记录 session/model；新模型先读仓库再续做</td></tr>
+      <tr><td>事实来源</td><td>仓库（state.json / 交接单 / commit）</td><td><strong>仓库优先</strong>，聊天记录仅作背景；两者冲突以仓库为准</td></tr>
+      <tr><td>特有风险</td><td>没 push 等于没交接</td><td>聊天惯性沿用旧结论、窗口变小导致早期约束被静默截断、工具能力差异、模型身份不可审计</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h4>② 换模型前：落盘四件事（Pre-switch Checkpoint）</h4>
+  <div class="step">
+    <div class="step-h"><span class="step-no">01</span><span class="step-t">把进度写成提交并推送</span></div>
+    <p class="field">当前改动全部 commit + push。聊天里说「改好了」不算；<b>没 push 的改动在新模型眼里不存在</b>。</p>
+  </div>
+  <div class="step">
+    <div class="step-h"><span class="step-no">02</span><span class="step-t">刷新 state.json 的 session 段</span></div>
+    <p class="field">写入 <code>session.id</code>、<code>handoff_kind="model_switch"</code>、<code>checkpoint_commit</code>、<code>updated_at</code>，并向 <code>model_history</code> 追加旧模型及其截止提交。<code>owner</code> 仍写席位不写模型；<code>status</code> 不变。</p>
+  </div>
+  <div class="step">
+    <div class="step-h"><span class="step-no">03</span><span class="step-t">写一张检查点交接单</span></div>
+    <p class="field">沿用 §6-2 五格结构，额外补一段「<b>约束重述</b>」：allowed_paths、验收命令、DoD、当前 status 各一行。全文 ≤ 400 字，每条踩坑 ≤ 2 行；详细材料用链接指向仓库内文件，不塞进聊天。</p>
+  </div>
+  <div class="step">
+    <div class="step-h"><span class="step-no">04</span><span class="step-t">在会话里打出分界线</span></div>
+    <p class="field">输出固定标记 <code>⟪RELAY-CHECKPOINT: T-014 @ &lt;commit&gt; @ &lt;旧模型&gt; → &lt;新模型&gt;⟫</code>。它只是给人看的定位锚，<b>权威仍在仓库</b>；新模型不得把标记本身当作状态来源。</p>
+  </div>
+
+  <h4>③ 换模型后：先绑定，再动手（Post-switch Re-bind）</h4>
+  <ol>
+    <li>新模型<strong>第一个动作</strong>是读 <code>state.json</code> → 读检查点交接单 → 读 <code>git log -1</code>，然后逐条复述「约束重述」四行。</li>
+    <li>绝不直接沿用聊天里上一模型的口头结论。仓库与聊天冲突时<strong>以仓库为准</strong>，并在 <code>log.md</code> 记一条 <code>model_rebind_mismatch</code>。</li>
+    <li><strong>窗口变小</strong>：先把长聊天压成交接单，必要时开新会话转硬交接。不要让早期约束在新窗口里被静默截断。</li>
+    <li><strong>工具能力不同</strong>：新模型没有终端或不能 push 时，降级为顾问席（只出卡 / 评审），写权交回有终端的会话，按硬交接走。</li>
+    <li>复述无误后，把 <code>session.model</code> 改为新模型标识，再继续任务；若发现状态不一致，先写 <code>status=blocked</code> 并按 C2 @人。</li>
+  </ol>
+
+  <h4>④ 三个高频坑与止损</h4>
+  <div class="table-scroll">
+  <table>
+    <thead><tr><th>坑</th><th>表现</th><th>止损动作</th></tr></thead>
+    <tbody>
+      <tr><td>聊天惯性</td><td>新模型把上一模型「我们决定这样改」当成已落盘事实，跳过 state.json</td><td>强制「先读仓库再动手」；复述约束四行后才能改文件</td></tr>
+      <tr><td>上下文截断</td><td>小窗口模型继承长会话，allowed_paths / 验收命令在中部被丢掉</td><td>换模型前压交接单 + 重述约束；必要时转硬交接开新会话</td></tr>
+      <tr><td>身份不可审计</td><td>只记席位不记模型，事后分不清哪一棒是哪个模型做的</td><td>session.model_history 逐次记录，log.md 事件带 model 字段</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h4>⑤ 脚本层影响</h4>
+  <p>在 §11-5 的六个脚本之外，增加一个 <code>relay-checkpoint.sh</code>：入参 <code>TASK_ID</code> 与 <code>NEW_MODEL</code>，负责「commit + push → 写 state.session → 生成检查点交接单骨架 → 打印分界线标记」。<code>relay-verify.sh</code> 增一条校验：<code>handoff_kind=model_switch</code> 时，检查点交接单的 <code>checkpoint_commit</code> 必须等于 state.json 同一字段且已存在于远端。原六个脚本语义不变。</p>
+
+  <div class="sign">
+    <span>REVIEW · 协议层保留，执行层补齐 —— <b>下一步：按 P0 生成 SKILL.md 与脚本骨架（含 relay-checkpoint.sh）</b></span>
+    <span>AGENT RELAY PLAYBOOK · V1.3 · 2026.11.22</span>
+  </div>
+
+</div>
+<script id="doc-toc-script">
+(function(){var root=document.getElementById('doc-toc');if(!root||!('IntersectionObserver' in window))return;
+var links=[].slice.call(root.querySelectorAll('a[href^="#"]')),map={},secs=[];
+links.forEach(function(a){var id=a.getAttribute('href').slice(1);map[id]=a;});
+Object.keys(map).forEach(function(id){var el=document.getElementById(id);if(el)secs.push(el);});
+var io=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;
+links.forEach(function(a){a.classList.remove('active');});var a=map[e.target.id];if(a)a.classList.add('active');});},
+{rootMargin:'-10% 0px -75% 0px',threshold:0});secs.forEach(function(s){io.observe(s);});})();
+</script>
+</body>
+</html>
